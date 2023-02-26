@@ -21,3 +21,14 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+# signing keys
+priv_key
+pub_key
+
+# Ignore the distribution files
+*.mxt
+
+# VS Code workspace and configuration files
+*.code-workspace
+settings.json
