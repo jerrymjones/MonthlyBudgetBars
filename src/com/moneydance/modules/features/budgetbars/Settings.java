@@ -73,7 +73,7 @@ public class Settings {
     /**
      * Default constructor for the settings class.
      * 
-     * @param AccountBook book - The account book in use
+     * @param  book - The account book in use
      */
     private Settings(final AccountBook book) 
     {

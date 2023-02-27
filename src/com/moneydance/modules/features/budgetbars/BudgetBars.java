@@ -53,8 +53,6 @@ import com.moneydance.apps.md.view.gui.MoneydanceGUI;
 import com.moneydance.apps.md.view.gui.MoneydanceLAF;
 import com.moneydance.awt.CollapsibleRefresher;
 
-
-
 /**
  * This class implements the Monthly Budget Bars widget.
  *
@@ -311,14 +309,22 @@ class BudgetBars implements HomePageView, AccountListener, TransactionListener, 
                 // reload the next time we go active.       
                 this.book.addAccountListener(this);  
                 this.book.getTransactionSet().addTransactionListener(this);
-                this.book.getBudgets().addListener(this); 
+                this.book.getBudgets().addListener(this);
+
+                // Add a listener on our budget
+                if (this.budget !=null)
+                    this.budget.addBudgetListener(this);
                 }
             else
                 {
                 // Remove the listeners
                 this.book.removeAccountListener(this);
                 this.book.getTransactionSet().removeTransactionListener(this);
-                this.book.getBudgets().removeListener(this); 
+                this.book.getBudgets().removeListener(this);
+
+                // Remove the listener on our budget
+                if (this.budget !=null)
+                    this.budget.removeBudgetListener(this);
                 }
             }
     }

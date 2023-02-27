@@ -221,7 +221,7 @@ public class BudgetCategoriesList {
         final BudgetCategoryItem parentItem = this.getCategoryItem(UUID);
 
         // If the parent has children we'll go add them to the list
-        if (parentItem.getHasChildren())
+        if (parentItem.hasChildren())
             {
             // Starting at the parent index find children who have a parentIndex 
             // equal to the requested item.

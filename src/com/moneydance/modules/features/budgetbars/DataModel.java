@@ -247,7 +247,7 @@ public class DataModel {
                 return;
 
             // If this is not a roll-up category then we need to get the current budget values for this category
-            if (!item.getHasChildren())
+            if (!item.hasChildren())
                 {
                 for (int month = startMonth; month < (startMonth + months); month++)
                     {
@@ -256,13 +256,13 @@ public class DataModel {
                     if (i != null)
                         item.setBudgetValueForMonth(this, this.budgetCategoriesList, month, i.getAmount(), acctType);
                     }
+                } 
 
-                // Retrieve the actual totals for this account
-                new TransactionTotals(item, this.book, acct, thisYear, startMonth, months);
+            // Retrieve the actual totals for this account
+            new TransactionTotals(item, this.book, acct, thisYear, startMonth, months);
 
-                // Update the parent actual totals
-                item.updateParentActualTotals(this.budgetCategoriesList, item);
-                }
+            // Update the parent actual totals
+            item.updateParentActualTotals(this.budgetCategoriesList, item);
             }
         }
     }

@@ -187,10 +187,13 @@ public class BudgetBar extends JPanel
             tipText.append("<html><center><b>"+item.getShortName()+"</b></center>");
 
             // % Spent
-            tipText.append("<center><b>"+(percentFormat.format(100.0d * actual / budget))+"%</b></center>");
+            if (budget == 0)
+                tipText.append("<center><b>N/A</b></center>"); // Prevents NaN
+            else
+                tipText.append("<center><b>"+(percentFormat.format(100.0d * actual / budget))+"%</b></center>");
 
             // It this item has children then get that information
-            if (item.getHasChildren())
+            if (item.hasChildren())
                 {
                 // First child displayed flag
                 boolean firstChild = true;
@@ -257,7 +260,8 @@ public class BudgetBar extends JPanel
 
             // Set the tooltip text
             this.progressBar.setToolTipText(tipText.toString());
-//            ToolTipManager.sharedInstance().setDismissDelay(15000);
+
+            // Hack to change the hover dismiss delay without affecting everyone else
             this.progressBar.addMouseListener(new MouseAdapter() {
                 final int defaultInitialDelay = ToolTipManager.sharedInstance().getInitialDelay();
                 final int defaultDismissTimeout = ToolTipManager.sharedInstance().getDismissDelay();
