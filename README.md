@@ -24,8 +24,10 @@ reporting of budget amounts and spending.
 3. **The extension has not yet been audited and signed by The Infinite Kind**, so you'll get a warning asking you if you really want to continue loading 
    the extension, click **Yes** to continue loading the extension.
    
-4. You can now add the extension to the Summary Page by going to File:Preferences in Moneydance and 
- then clicking on the "Summary Page" tab and adding **Monthly Budget Bars ** to the left or right pane.
+4. You can now add the extension to the Summary Page by going to **File:Preferences** in Moneydance and 
+ then clicking on the "Summary Page" tab and adding **Monthly Budget Bars** to the left or right pane.
+
+5. Now switch away from the Summary page (You can click Reminders) then return to the Summary Page to force the widget to be displayed. See the [Wiki](https://github.com/jerrymjones/MonthlyBudgetBars/wiki) if you need help configuring the Monthly Budget Bars extension.
 
 ## Build
 
