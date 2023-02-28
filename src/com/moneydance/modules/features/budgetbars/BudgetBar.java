@@ -181,6 +181,7 @@ public class BudgetBar extends JPanel
              * Create the tooltip text
              */
             final StringBuilder tipText = new StringBuilder();
+            final StringBuilder childTipText = new StringBuilder();
             final DecimalFormat percentFormat = new DecimalFormat("0.00");
 
             // Category name
@@ -192,9 +193,20 @@ public class BudgetBar extends JPanel
             else
                 tipText.append("<center><b>"+(percentFormat.format(100.0d * actual / budget))+"%</b></center>");
 
+// TODO Add parent's contribution to the total if the sum of the direct children (not ancestors) is less than the total
+// amount spent. Parent_contribution = actual - sum_of_direct_children. We'll have to split the top part of the tip text
+// after the header was added from the child contributions then add the two together when setting the tip text. If the 
+// Parent_contribution is non-zero we'll append that to tipText then combine. This is for the case where a user assigns
+// a parent category to a transaction when children exist to better classify the expense.
+// This worked for a normal parent category but not for a special category or likely even a normal category with parent
+// categories below that. In those cases the child parent categories still show their totals not their contributions.
+
             // It this item has children then get that information
             if (item.hasChildren())
                 {
+                // Total child spending
+                Double childSpent = 0d;
+
                 // First child displayed flag
                 boolean firstChild = true;
 
@@ -233,33 +245,58 @@ public class BudgetBar extends JPanel
                     for (int i = 0; i < indent; i++) {
                         indentStr += "&nbsp;&nbsp;&nbsp;";
                         }
-                    tipText.append("<tr><td>"+indentStr+child.getShortName()+"&nbsp;&nbsp;</td>");
+                    childTipText.append("<tr><td>"+indentStr+child.getShortName()+"&nbsp;&nbsp;</td>");
 
                     // Add spent amount
-                    tipText.append("<td align='right'>"+NumberFormat.getCurrencyInstance().format(childActual)+"&nbsp;&nbsp;</td>");
+                    childTipText.append("<td align='right'>"+NumberFormat.getCurrencyInstance().format(childActual)+"&nbsp;&nbsp;</td>");
+
+                    // Keep track of direct children total spent
+                    if (child.getIndentLevel() == item.getIndentLevel() + 1)
+                        childSpent += childActual;
 
                     // Add spent %
                     if (childBudget == 0)
-                        tipText.append("<td align='center'>N/A</td>");   // Prevents NaN
+                        childTipText.append("<td align='center'>N/A</td>");   // Prevents NaN
                     else
-                        tipText.append("<td align='right'>"+(percentFormat.format(100.0d * childActual / childBudget))+"%&nbsp;&nbsp;</td>");
+                        childTipText.append("<td align='right'>"+(percentFormat.format(100.0d * childActual / childBudget))+"%&nbsp;&nbsp;</td>");
                    
                     // Add Remaining amount
-                    tipText.append("<td align='right'>"+NumberFormat.getCurrencyInstance().format(childBudget-childActual)+"&nbsp;&nbsp;</td>");
+                    childTipText.append("<td align='right'>"+NumberFormat.getCurrencyInstance().format(childBudget-childActual)+"&nbsp;&nbsp;</td>");
 
                     // Add budget amount
-                    tipText.append("<td align='right'>"+NumberFormat.getCurrencyInstance().format(childBudget)+"&nbsp;&nbsp;</td>");
+                    childTipText.append("<td align='right'>"+NumberFormat.getCurrencyInstance().format(childBudget)+"&nbsp;&nbsp;</td>");
 
                     // End of row
-                    tipText.append("</tr>");
+                    childTipText.append("</tr>");
                     }
 
-                // Add child footer
-                tipText.append("</table>");
+                // See if there is a parent contribution to the total spent
+                Double parentContribution = actual - childSpent;
+                if (parentContribution > 0)
+                    {
+                    // Category name
+                    tipText.append("<tr><td>"+item.getShortName()+"&nbsp;&nbsp;</td>");
+
+                    // Parent contribution amount
+                    tipText.append("<td align='right'>"+NumberFormat.getCurrencyInstance().format(parentContribution)+"&nbsp;&nbsp;</td>");
+
+                    // % of budget
+                    tipText.append("<td align='center'>N/A</td>");
+
+                    // Add Remaining amount
+                    tipText.append("<td align='right'>"+NumberFormat.getCurrencyInstance().format(0d)+"&nbsp;&nbsp;</td>");
+
+                    // Add budget amount
+                    tipText.append("<td align='right'>"+NumberFormat.getCurrencyInstance().format(0d)+"&nbsp;&nbsp;</td>");
+                    }
+
+                // End the table if child items were displayed
+                if (!firstChild)
+                    childTipText.append("</table>");
                 }
 
             // Set the tooltip text
-            this.progressBar.setToolTipText(tipText.toString());
+            this.progressBar.setToolTipText(tipText.toString()+childTipText.toString());
 
             // Hack to change the hover dismiss delay without affecting everyone else
             this.progressBar.addMouseListener(new MouseAdapter() {
