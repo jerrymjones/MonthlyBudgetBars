@@ -34,7 +34,6 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Iterator;
 import java.util.List;
@@ -181,9 +180,7 @@ public class BudgetBar extends JPanel
              * Create the tooltip text
              */
             final StringBuilder tipText = new StringBuilder();
-            final StringBuilder childTipText = new StringBuilder();
-            final DecimalFormat percentFormat = new DecimalFormat("0.00");
-
+            
             // Category name
             tipText.append("<html><center><b>"+item.getShortName()+"</b></center>");
 
@@ -191,112 +188,26 @@ public class BudgetBar extends JPanel
             if (budget == 0)
                 tipText.append("<center><b>N/A</b></center>"); // Prevents NaN
             else
-                tipText.append("<center><b>"+(percentFormat.format(100.0d * actual / budget))+"%</b></center>");
+                tipText.append("<center><b>"+(Constants.PERCENT_FORMAT.format(100.0d * actual / budget))+"%</b></center>");
 
-// TODO Add parent's contribution to the total if the sum of the direct children (not ancestors) is less than the total
-// amount spent. Parent_contribution = actual - sum_of_direct_children. We'll have to split the top part of the tip text
-// after the header was added from the child contributions then add the two together when setting the tip text. If the 
-// Parent_contribution is non-zero we'll append that to tipText then combine. This is for the case where a user assigns
-// a parent category to a transaction when children exist to better classify the expense.
-// This worked for a normal parent category but not for a special category or likely even a normal category with parent
-// categories below that. In those cases the child parent categories still show their totals not their contributions.
+            // Go process the root category
+            ProcessCategory root = new ProcessCategory(this.UUID, this.dataModel, item.getIndentLevel(), true, settings.getAllAncestors()); 
 
-            // It this item has children then get that information
-            if (item.hasChildren())
+            // Do we have child information to add
+            if (root.getTipText().length() != 0)
                 {
-                // Total child spending
-                Double childSpent = 0d;
+                // Yes, so add the header
+                tipText.append("<table><tr><th>Category</th><th>Spent</th><th>%</th><th>Remaining</th><th>Budget</th></tr>");
 
-                // First child displayed flag
-                boolean firstChild = true;
+                // Append the tip text from this child
+                tipText.append(root.getTipText());
 
-                // Get the children of this item
-                final List<BudgetCategoryItem> children = this.dataModel.getBudgetCategoriesList().getChildren(this.UUID, settings.getAllAncestors());
-
-                // Iterator
-                final Iterator<BudgetCategoryItem> it = children.iterator();
-
-                while (it.hasNext()) 
-                    {
-                    // Get a child
-                    final BudgetCategoryItem child = it.next();
-
-                    // Retrieve the values for this category
-                    final Double childBudget = (Double)(child.getBudgetTotal() / 100.0d); 
-                    final Double childActual = (Double)(child.getActualTotal() / 100.0d);
-
-                    // Don't display if budget and actual are both 0
-                    if ((childBudget == 0) && (childActual == 0))
-                        continue;
-
-                    // If this is the first child to be displayed, we need to display the header
-                    if (firstChild)
-                        {
-                        // Add child header
-                        tipText.append("<table><tr><th>Category</th><th>Spent</th><th>%</th><th>Remaining</th><th>Budget</th></tr>");
-
-                        // Clear the flag so we only display the header once
-                        firstChild = false;
-                        }
-
-                    // Add category name indented
-                    int indent = (child.getIndentLevel() - item.getIndentLevel() - 1);
-                    String indentStr = "";
-                    for (int i = 0; i < indent; i++) {
-                        indentStr += "&nbsp;&nbsp;&nbsp;";
-                        }
-                    childTipText.append("<tr><td>"+indentStr+child.getShortName()+"&nbsp;&nbsp;</td>");
-
-                    // Add spent amount
-                    childTipText.append("<td align='right'>"+NumberFormat.getCurrencyInstance().format(childActual)+"&nbsp;&nbsp;</td>");
-
-                    // Keep track of direct children total spent
-                    if (child.getIndentLevel() == item.getIndentLevel() + 1)
-                        childSpent += childActual;
-
-                    // Add spent %
-                    if (childBudget == 0)
-                        childTipText.append("<td align='center'>N/A</td>");   // Prevents NaN
-                    else
-                        childTipText.append("<td align='right'>"+(percentFormat.format(100.0d * childActual / childBudget))+"%&nbsp;&nbsp;</td>");
-                   
-                    // Add Remaining amount
-                    childTipText.append("<td align='right'>"+NumberFormat.getCurrencyInstance().format(childBudget-childActual)+"&nbsp;&nbsp;</td>");
-
-                    // Add budget amount
-                    childTipText.append("<td align='right'>"+NumberFormat.getCurrencyInstance().format(childBudget)+"&nbsp;&nbsp;</td>");
-
-                    // End of row
-                    childTipText.append("</tr>");
-                    }
-
-                // See if there is a parent contribution to the total spent
-                Double parentContribution = actual - childSpent;
-                if (parentContribution > 0)
-                    {
-                    // Category name
-                    tipText.append("<tr><td>"+item.getShortName()+"&nbsp;&nbsp;</td>");
-
-                    // Parent contribution amount
-                    tipText.append("<td align='right'>"+NumberFormat.getCurrencyInstance().format(parentContribution)+"&nbsp;&nbsp;</td>");
-
-                    // % of budget
-                    tipText.append("<td align='center'>N/A</td>");
-
-                    // Add Remaining amount
-                    tipText.append("<td align='right'>"+NumberFormat.getCurrencyInstance().format(0d)+"&nbsp;&nbsp;</td>");
-
-                    // Add budget amount
-                    tipText.append("<td align='right'>"+NumberFormat.getCurrencyInstance().format(0d)+"&nbsp;&nbsp;</td>");
-                    }
-
-                // End the table if child items were displayed
-                if (!firstChild)
-                    childTipText.append("</table>");
+                // End the table
+                tipText.append("</table>");
                 }
 
             // Set the tooltip text
-            this.progressBar.setToolTipText(tipText.toString()+childTipText.toString());
+            this.progressBar.setToolTipText(tipText.toString());
 
             // Hack to change the hover dismiss delay without affecting everyone else
             this.progressBar.addMouseListener(new MouseAdapter() {
@@ -321,5 +232,167 @@ public class BudgetBar extends JPanel
             if (this.budgetLabel != null)
                 this.budgetLabel.setText(NumberFormat.getCurrencyInstance().format(budget));
             }
+    }
+
+    /**
+     * This class Gathers tool tip information for each parent category requested
+     *
+     * @author  Jerry Jones
+     */
+    public class ProcessCategory
+    {
+        // The tool tip text for this category
+        final StringBuilder tipText = new StringBuilder();
+
+        // Total child spending for this category
+        Double childSpent = 0d;
+
+        /**
+         * Constructor to create a parent category processor
+         * 
+         * @param UUID - The UUID of the parent category to process
+         * @param dataModel - The data model in use
+         * @param rootIndent - The indent level of the root category
+         * @param isRoot - True when processing the root category
+         * @param showAllAncestors - True when showing all ancestor categories
+         */
+        public ProcessCategory(String UUID, DataModel dataModel, int rootIndent, boolean isRoot, boolean showAllAncestors) 
+        {
+            // Get the budget category item
+            final BudgetCategoryItem item = dataModel.getCategoryItem(UUID);
+
+            // It this item has children then get a list of them
+            if (item.hasChildren())
+                {
+                // Get the direct children of this parent category
+                final List<BudgetCategoryItem> children = dataModel.getBudgetCategoriesList().getChildren(UUID, false);
+
+                // Iterator
+                final Iterator<BudgetCategoryItem> it = children.iterator();
+
+                while (it.hasNext()) 
+                    {
+                    // Get a child
+                    final BudgetCategoryItem child = it.next();
+
+                    // Retrieve the values for this category
+                    final Double childBudget = (Double)(child.getBudgetTotal() / 100.0d); 
+                    final Double childActual = (Double)(child.getActualTotal() / 100.0d);
+
+                    // Don't display if actual and budget are both 0
+                    if ((childActual == 0) && (childBudget == 0))
+                        continue;
+
+                    // Is this child a parent?
+                    if (child.hasChildren())
+                        {
+                        // Go process this child as a parent
+                        ProcessCategory processChild = new ProcessCategory(child.getAccount().getUUID() , dataModel, rootIndent, false, showAllAncestors);
+                        
+                        // Append the tip text from this child
+                        this.tipText.append(processChild.getTipText());
+
+                        // Add the child spent to our total
+                        this.childSpent += childActual;
+                        }
+                    else
+                        {
+                        // Keep track of direct children total spent
+                        this.childSpent += childActual;
+
+                        // Only show children if we are processing the root category (ie. direct child of root)
+                        // or if we are showing all ancestors 
+                        if ((isRoot) || (showAllAncestors))
+                            {
+                            // Add category name indented
+                            int indent = (child.getIndentLevel() - rootIndent - 1);
+                            String indentStr = "";
+                            for (int i = 0; i < indent; i++) {
+                                indentStr += "&nbsp;&nbsp;&nbsp;";
+                                }
+                            this.tipText.append("<tr><td>"+indentStr+child.getShortName()+"&nbsp;&nbsp;</td>");
+
+                            // Add spent amount
+                            this.tipText.append("<td align='right'>"+NumberFormat.getCurrencyInstance().format(childActual)+"&nbsp;&nbsp;</td>");
+
+                            // Add spent %
+                            if (childBudget == 0)
+                                this.tipText.append("<td align='center'>N/A</td>");   // Prevents NaN
+                            else
+                                this.tipText.append("<td align='right'>"+(Constants.PERCENT_FORMAT.format(100.0d * childActual / childBudget))+"%&nbsp;&nbsp;</td>");
+                        
+                            // Add Remaining amount
+                            this.tipText.append("<td align='right'>"+NumberFormat.getCurrencyInstance().format(childBudget - childActual)+"&nbsp;&nbsp;</td>");
+
+                            // Add budget amount
+                            this.tipText.append("<td align='right'>"+NumberFormat.getCurrencyInstance().format(childBudget)+"&nbsp;&nbsp;</td>");
+
+                            // End of row
+                            this.tipText.append("</tr>");
+                            }
+                        }
+                    } // For each child
+
+                // Calculate the parent contribution to the total spent
+                Double parentContribution = (Double)(item.getActualTotal() / 100.0d) - this.childSpent;
+
+                // Show parent contribution as required
+                if (((isRoot) && (parentContribution > 0)) || ((!isRoot) && (showAllAncestors)))
+                    this.prependCategory(item, 0d, parentContribution, rootIndent);
+                    
+                // If this category is a direct child of the root category then prepend as normal entry
+                else if (item.getIndentLevel() == rootIndent + 1)
+                    this.prependCategory(item, (Double)(item.getBudgetTotal() / 100.0d), (Double)(item.getActualTotal() / 100.0d), rootIndent);
+                }
+            }
+
+        private void prependCategory(BudgetCategoryItem item, Double budget, Double actual, int rootIndent)
+        {
+            // The tool tip text to prepend for this category
+            final StringBuilder preTipText = new StringBuilder();
+
+            // Add category name indented
+            int indent = (item.getIndentLevel() - rootIndent - 1);
+            String indentStr = "";
+            for (int i = 0; i < indent; i++) {
+                indentStr += "&nbsp;&nbsp;&nbsp;";
+                }
+            preTipText.append("<tr><td>"+indentStr+item.getShortName()+"&nbsp;&nbsp;</td>");
+
+            // Add spent amount
+            preTipText.append("<td align='right'>"+NumberFormat.getCurrencyInstance().format(actual)+"&nbsp;&nbsp;</td>");
+
+            // Add spent %
+            if (budget == 0)
+                preTipText.append("<td align='center'>N/A</td>");   // Prevents NaN
+            else
+                preTipText.append("<td align='right'>"+(Constants.PERCENT_FORMAT.format(100.0d * actual / budget))+"%&nbsp;&nbsp;</td>");
+        
+            // Add Remaining amount
+            preTipText.append("<td align='right'>"+NumberFormat.getCurrencyInstance().format(budget-actual)+"&nbsp;&nbsp;</td>");
+
+            // Add budget amount
+            preTipText.append("<td align='right'>"+NumberFormat.getCurrencyInstance().format(budget)+"&nbsp;&nbsp;</td>");
+
+            // End of row
+            preTipText.append("</tr>");
+
+            // Prepend the tooltip text to tipText
+            this.tipText.insert(0, preTipText);
+        }
+
+        /**
+         * @return the tipText
+         */
+        public StringBuilder getTipText() {
+            return this.tipText;
+        }
+
+        /**
+         * @return the childSpent
+         */
+        public Double getChildSpent() {
+            return this.childSpent;
+        }
     }
 }

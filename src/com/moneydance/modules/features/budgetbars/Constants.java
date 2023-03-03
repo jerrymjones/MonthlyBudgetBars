@@ -31,6 +31,7 @@
 package com.moneydance.modules.features.budgetbars;
 
 import java.awt.Color;
+import java.text.DecimalFormat;
 
 public class Constants 
 {
@@ -65,4 +66,9 @@ public class Constants
     public static String MBB_SETTINGS               = "MonthlyBudgetBars_settings"; // Settings 
     public static final int SETTINGS_VERSION_1      = 1;                            // Version 1 of the settings
     public static final int V1_NUM_MBR_SETTINGS     = 7;                            // Number of MBB_Settings in version 1 settings: (Version, Budget name, Use_full_names, warning level, over level, allAncestors)
+
+    /*
+     * Decimal format when printing percentages
+     */
+    public static DecimalFormat PERCENT_FORMAT      = new DecimalFormat("0.00");
 }
