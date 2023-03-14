@@ -76,6 +76,7 @@ public class BudgetBarEdit extends JDialog implements ChangeListener
     JComboBox<String> budgetSelector;
     JCheckBox showFullNames;
     JCheckBox showAllAncestors;
+    JCheckBox showUseCategoryCurrency;
     private JSlider warning;
     private JLabel warningValLabel;
     private JSlider over;
@@ -180,23 +181,31 @@ public class BudgetBarEdit extends JDialog implements ChangeListener
         topPanel.add(this.showAllAncestors,GridC.getc(1, 3).insets(10, 10, 10, 0).fillx());
 
         /*
+        ** Show use category currency checkbox
+        */
+        this.showUseCategoryCurrency = new JCheckBox("Use the category currency to display values");
+        this.showUseCategoryCurrency.setSelected(this.settings.getUseCategoryCurrency());
+        this.showUseCategoryCurrency.setToolTipText("Select to use the currency set for the category rather than the base currency");
+        topPanel.add(this.showUseCategoryCurrency,GridC.getc(1, 4).insets(10, 10, 10, 0).fillx());
+
+        /*
         * Field to set the warning level
         */
         // Label
         final JLabel warningLabel = new JLabel("Warning Level (%):");
         warningLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-        topPanel.add(warningLabel, GridC.getc(0, 4).insets(10, 0, 0, 0).east());
+        topPanel.add(warningLabel, GridC.getc(0, 5).insets(10, 0, 0, 0).east());
 
         // Add a slider to set the level from 50.0% to 150.0%
         this.warning = new JSlider(500, 1500);
         this.warning.setValue(Math.round(this.settings.getWarningLevel() * 10));
-        topPanel.add(this.warning,GridC.getc(1, 4).insets(10, 10, 0, 0).fillx());
+        topPanel.add(this.warning,GridC.getc(1, 5).insets(10, 10, 0, 0).fillx());
 
         // Value label
         this.warningValLabel = new JLabel();
         this.warningValLabel.setHorizontalAlignment(SwingConstants.CENTER);
         this.warningValLabel.setText(String.valueOf(this.warning.getValue() / 10.0f));
-        topPanel.add(this.warningValLabel, GridC.getc(1, 5).insets(0, 0, 10, 0).center());
+        topPanel.add(this.warningValLabel, GridC.getc(1, 6).insets(0, 0, 10, 0).center());
 
         // Add a change listener so we can update the warningValLabel
         this.warning.addChangeListener(this);
@@ -207,18 +216,18 @@ public class BudgetBarEdit extends JDialog implements ChangeListener
         // Label
         final JLabel overLabel = new JLabel("Over Budget level (%):");
         overLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-        topPanel.add(overLabel, GridC.getc(0, 6).insets(10, 0, 0, 0).east());
+        topPanel.add(overLabel, GridC.getc(0, 7).insets(10, 0, 0, 0).east());
 
         // Add a slider to set the level from 50.0% to 150.0%
         this.over = new JSlider(Math.round(this.settings.getWarningLevel() * 10), Math.round(this.settings.getWarningLevel() * 10) + 500);
         this.over.setValue(Math.round(this.settings.getOverBudgetLevel() * 10));
-        topPanel.add(this.over,GridC.getc(1, 6).insets(10, 10, 0, 0).fillx());
+        topPanel.add(this.over,GridC.getc(1, 7).insets(10, 10, 0, 0).fillx());
 
         // Value label
         this.overValLabel = new JLabel();
         this.overValLabel.setHorizontalAlignment(SwingConstants.CENTER);
         this.overValLabel.setText(String.valueOf(this.over.getValue() / 10.0f));
-        topPanel.add(this.overValLabel, GridC.getc(1, 7).center());
+        topPanel.add(this.overValLabel, GridC.getc(1, 8).center());
 
         // Add a change listener so we can update the warningValLabel
         this.over.addChangeListener(this);
@@ -534,12 +543,18 @@ public class BudgetBarEdit extends JDialog implements ChangeListener
             }
 
         // For each selected item in the array, we move them over to the selected items list
-        // and remove them from the available items list
         for (int i = 0; i < selIndices.length; i++)
             {
             // Add to the selected items
             this.selectedModel.addElement(this.availableModel.get(selIndices[i]));
+            }
 
+        // For each selected item in the array, remove them from the available items list 
+        // Note, we don't do this in one step because that will cause the indexes to be 
+        // incorrect and we'll move the wrong items. We can't go backwards because then 
+        // we'll insert them backwards.
+        for (int i = 0; i < selIndices.length; i++)
+            {
             // Remove from the available items
             this.availableModel.remove(selIndices[i]);
             }
@@ -662,7 +677,10 @@ public class BudgetBarEdit extends JDialog implements ChangeListener
             return true;
 
         if (this.showAllAncestors.isSelected() != this.settings.getAllAncestors() )
-        return true;
+            return true;
+
+        if (this.showUseCategoryCurrency.isSelected() != this.settings.getUseCategoryCurrency() )
+            return true;
 
         // Did the sliders change?
         if (this.stateChanged)
@@ -687,6 +705,7 @@ public class BudgetBarEdit extends JDialog implements ChangeListener
                     this.settings.setBudgetName(this.budgetSelector.getSelectedItem().toString());
                     this.settings.setUseFullNames(this.showFullNames.isSelected());
                     this.settings.setAllAncestors(this.showAllAncestors.isSelected());
+                    this.settings.setUseCategoryCurrency(this.showUseCategoryCurrency.isSelected());
                     this.settings.setWarningLevel(this.warning.getValue() / 10.0f);
                     this.settings.setOverBudgetLevel(this.over.getValue() / 10.0f);
 

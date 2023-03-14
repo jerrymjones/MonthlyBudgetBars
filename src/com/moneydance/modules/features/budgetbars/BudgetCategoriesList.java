@@ -42,6 +42,7 @@ import java.util.Set;
 import javax.swing.JOptionPane;
 
 import com.infinitekind.moneydance.model.Account;
+import com.infinitekind.moneydance.model.AccountBook;
 
 /**
 * This class creates a list of category items that are budgetable.
@@ -51,6 +52,9 @@ import com.infinitekind.moneydance.model.Account;
 * @author  Jerry Jones
 */
 public class BudgetCategoriesList {
+    // The current data file
+    private final AccountBook book;
+
     // Create an empty LinkedHashMap to hold the data
     private LinkedHashMap<String, BudgetCategoryItem> lhm = null;
 
@@ -60,9 +64,14 @@ public class BudgetCategoriesList {
 
     
     /** 
-     * Default constructor for the BudgetCategoriesList.
+     * Constructor for the BudgetCategoriesList.
+     * 
+     * @param book - The account book to use for the data model
      */
-    public BudgetCategoriesList() {
+    public BudgetCategoriesList(AccountBook book) {
+        // Save the account book for later
+        this.book = book;
+
         // Create a hash map for the categories
         this.lhm = new LinkedHashMap<String, BudgetCategoryItem>();
     }
@@ -94,7 +103,7 @@ public class BudgetCategoriesList {
      */
     public BudgetCategoryItem add(final String UUID, final String fullName, final Account.AccountType type, final int level) {
         // Create a new budget category item for this category
-        final BudgetCategoryItem bcItem = new BudgetCategoryItem(this.lhm.size(), fullName, type, this.tracker.getParent(level, true), level);
+        final BudgetCategoryItem bcItem = new BudgetCategoryItem(this.lhm.size(), fullName, type, this.book.getCurrencies().getBaseType(), this.tracker.getParent(level, true), level);
         
         // Put the item in the hash map
         this.lhm.put(UUID, bcItem);
@@ -149,7 +158,7 @@ public class BudgetCategoriesList {
         final int indentLevel = BudgetCategoriesList.calcIndentLevel(fullName);
         
         // Create a new budget category item for this category
-        final BudgetCategoryItem bcItem = new BudgetCategoryItem(this.lhm.size(), acct, acct.getAccountType(), this.tracker.getParent(indentLevel, hasChildren), indentLevel, hasChildren);
+        final BudgetCategoryItem bcItem = new BudgetCategoryItem(this.lhm.size(), acct, acct.getAccountType(), acct.getCurrencyType(), this.tracker.getParent(indentLevel, hasChildren), indentLevel, hasChildren);
         
         // Put the item in the hash map
         this.lhm.put(acct.getUUID(), bcItem);

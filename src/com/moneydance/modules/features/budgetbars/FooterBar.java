@@ -37,6 +37,7 @@ import java.awt.Dimension;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import com.moneydance.apps.md.view.gui.MDColors;
 import com.moneydance.apps.md.view.gui.MoneydanceGUI;
 
 /**
@@ -56,6 +57,8 @@ public class FooterBar extends JPanel
         // Call the default JPanel constructor
         super();
 
+        MDColors colors = com.moneydance.apps.md.view.gui.MDColors.getSingleton();
+
         // Set the layout manager for this bar
         this.setLayout(new BorderLayout(10,10));
 
@@ -65,18 +68,18 @@ public class FooterBar extends JPanel
         // Left legend
         final JLabel leftLabel = new JLabel("Spent", JLabel.RIGHT);
         leftLabel.setPreferredSize(new Dimension(100, leftLabel.getHeight()));
-        leftLabel.setForeground(Constants.MEDIUM_BLUE);
+        leftLabel.setForeground(colors.isDarkTheme() ? Constants.MEDIUM_BLUE : colors.reportBlueFG);   
         this.add(leftLabel, BorderLayout.LINE_START);
 
         // Center legend
         final JLabel centerLabel = new JLabel("Remaining", JLabel.CENTER);
-        centerLabel.setForeground(Constants.MEDIUM_BLUE);
+        centerLabel.setForeground(colors.isDarkTheme() ? Constants.MEDIUM_BLUE : colors.reportBlueFG);
         this.add(centerLabel, BorderLayout.CENTER);
 
         // Right legend
         final JLabel rightLabel = new JLabel("Budget", JLabel.RIGHT);
         rightLabel.setPreferredSize(new Dimension(100, rightLabel.getHeight()));
-        rightLabel.setForeground(Constants.MEDIUM_BLUE);
+        rightLabel.setForeground(colors.isDarkTheme() ? Constants.MEDIUM_BLUE : colors.reportBlueFG);
         this.add(rightLabel, BorderLayout.LINE_END);
     }
 }

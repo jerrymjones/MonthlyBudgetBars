@@ -119,14 +119,14 @@ class BudgetBars implements HomePageView, AccountListener, TransactionListener, 
 
         // Prevent Moneydance from calling us twice.
         this.noReentry = true; 
-        
+
         // We have to reload if the configuration was edited
         if (this.configurationChanged)
             {
             // Reload the data model and setup the widget
             this.dataModel = null;
             }
-        
+
         // We have to reload if the book changes or if the configuration was edited
         if (!book.equals(this.book))
             {   

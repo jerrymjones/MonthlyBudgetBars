@@ -132,7 +132,7 @@ public class DataModel {
             this.budgetItemList = this.parent.getBudget().getItemList();
 
         // Create a new Budget Categories list
-        this.budgetCategoriesList = new BudgetCategoriesList();
+        this.budgetCategoriesList = new BudgetCategoriesList(this.book);
 
         // Create a special category for the Income - Expenses total row
         this.budgetCategoriesList.add(Constants.UUID_OVERALL, "Income-Expenses", Account.AccountType.ROOT, 0);

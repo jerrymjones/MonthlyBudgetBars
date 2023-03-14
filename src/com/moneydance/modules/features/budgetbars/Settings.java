@@ -50,7 +50,7 @@ public class Settings {
      * The settings we support
      */
     // Version number of the settings
-    private static int version = Constants.SETTINGS_VERSION_1;
+    private static int version = Constants.SETTINGS_VERSION_2;
 
     // The name of the budget to use
     private static String budgetName = "Budget";
@@ -67,8 +67,12 @@ public class Settings {
     // The display period for the budget bars 
     private static int period = Constants.PERIOD_AUTOMATIC;
 
-    // The display period for the budget bars 
+    // True when displaying all ancestors in the pop up, false for direct
+    // children only. 
     private static Boolean allAncestors = false;
+
+    // True when displaying the bar using the category currency 
+    private static Boolean useCategoryCurrency = false;
 
     /**
      * Default constructor for the settings class.
@@ -86,19 +90,29 @@ public class Settings {
         final String rawSettings = book.getRootAccount().getPreference(Constants.MBB_SETTINGS, "");
         final String[] rawSplit = rawSettings.split("\\s*,\\s*");
 
-        // Did we get valid data?
-        if (rawSplit.length == Constants.V1_NUM_MBR_SETTINGS)
+        try 
             {
+            // Get the version of the stored settings
+            int version = Integer.parseInt(rawSplit[0]);
+
             try
                 {
-                Settings.version            = Integer.parseInt(rawSplit[0]);
-                Settings.budgetName         = rawSplit[1];
-                Settings.useFullNames       = rawSplit[2].equalsIgnoreCase("true");
-                Settings.warningLevel       = Float.parseFloat(rawSplit[3]);
-                Settings.overBudgetLevel    = Float.parseFloat(rawSplit[4]);
-                Settings.period             = Integer.parseInt(rawSplit[5]);
-                Settings.allAncestors       = rawSplit[6].equalsIgnoreCase("true");
-                return;
+                if ((version == Constants.SETTINGS_VERSION_1) && (rawSplit.length == Constants.V1_NUM_MBR_SETTINGS))
+                    {
+                    // Get the V1 parameters
+                    Settings.getV1Params(rawSplit);
+
+                    // Upgrade to V2 parameters by setting the defaults
+                    Settings.version                = Constants.SETTINGS_VERSION_2;
+                    Settings.useCategoryCurrency    = false;
+                    return;
+                    }
+                else if ((version == Constants.SETTINGS_VERSION_2) && (rawSplit.length == Constants.V2_NUM_MBR_SETTINGS))
+                    {
+                    Settings.getV2Params(rawSplit);
+                    return;
+                    }
+                // else, just go set the defaults
                 }
             catch (final Exception e)
                 {
@@ -106,17 +120,51 @@ public class Settings {
                 System.err.println("ERROR: Cannot parse the configuration settings '"+rawSettings+"'.");
                 }
             }
+        catch(final Exception e)
+            {
+            e.printStackTrace();
+            System.err.println("ERROR: Cannot invalid configuration settings '"+rawSettings+"'.");
+            }
 
         // Otherwise, we'll use the defaults just to get going
-        Settings.version            = Constants.SETTINGS_VERSION_1;
-        Settings.budgetName         = "Budget";
-        Settings.useFullNames       = false;
-        Settings.warningLevel       = 100.0f;
-        Settings.overBudgetLevel    = 105.0f;
-        Settings.period             = Constants.PERIOD_AUTOMATIC;
-        Settings.allAncestors       = false;
+        Settings.version                = Constants.SETTINGS_VERSION_2;
+        Settings.budgetName             = "Budget";
+        Settings.useFullNames           = false;
+        Settings.warningLevel           = 100.0f;
+        Settings.overBudgetLevel        = 105.0f;
+        Settings.period                 = Constants.PERIOD_AUTOMATIC;
+        Settings.allAncestors           = false;
+        Settings.useCategoryCurrency    = false;
     }
 
+    /**
+     * Method to retrieve the V1 parameters
+     * 
+     * @param rawSplit - The settings from the preferences split into an array
+     */
+    private static void getV1Params(String[] rawSplit) {
+        Settings.version                = Constants.SETTINGS_VERSION_1;
+        Settings.budgetName             = rawSplit[1];
+        Settings.useFullNames           = rawSplit[2].equalsIgnoreCase("true");
+        Settings.warningLevel           = Float.parseFloat(rawSplit[3]);
+        Settings.overBudgetLevel        = Float.parseFloat(rawSplit[4]);
+        Settings.period                 = Integer.parseInt(rawSplit[5]);
+        Settings.allAncestors           = rawSplit[6].equalsIgnoreCase("true");
+    }
+
+    /**
+     * Method to retrieve the V2 parameters
+     * 
+     * @param rawSplit - The settings from the preferences split into an array
+     */
+    private static void getV2Params(String[] rawSplit) {
+        // First load the V1 parameters
+        Settings.getV1Params(rawSplit);
+
+        //Now get the V2 parameters
+        Settings.version                = Constants.SETTINGS_VERSION_2;
+        Settings.useCategoryCurrency    = rawSplit[7].equalsIgnoreCase("true");
+    }
 
     /**
      * Get the Instance of this class There should only ever be one instance of
@@ -162,7 +210,7 @@ public class Settings {
      */
     public void saveSettings() {
         final String settings = Settings.version+","+Settings.budgetName+","+Settings.useFullNames.toString()+","+Settings.warningLevel
-            +","+Settings.overBudgetLevel+","+Settings.period+","+Settings.allAncestors.toString();
+            +","+Settings.overBudgetLevel+","+Settings.period+","+Settings.allAncestors.toString()+","+Settings.useCategoryCurrency.toString();
         Settings.book.getRootAccount().setPreference(Constants.MBB_SETTINGS, settings);
     }
     
@@ -173,7 +221,7 @@ public class Settings {
     public String toString() {
         return "Settings [version=" + Settings.version + ", budgetName=" + Settings.budgetName + ", useFullNames=" + Settings.useFullNames + ", warningLevel="
                 + Settings.warningLevel + ", overBudgetLevel=" + Settings.overBudgetLevel + ", period=" + Settings.period  + ", allAncestors=" 
-                + Settings.allAncestors+ "]";
+                + Settings.allAncestors  + ", useCategoryCurrency="+ Settings.useCategoryCurrency + "]";
     }
 
     /**
@@ -258,6 +306,20 @@ public class Settings {
      */
     public void setAllAncestors(Boolean allAncestors) {
         Settings.allAncestors = allAncestors;
+    }
+
+    /**
+     * @return the useCategoryCurrency
+     */
+    public Boolean getUseCategoryCurrency() {
+        return Settings.useCategoryCurrency;
+    }
+
+    /**
+     * @param useCategoryCurrency the useCategoryCurrency to set
+     */
+    public void setUseCategoryCurrency(Boolean useCategoryCurrency) {
+        Settings.useCategoryCurrency = useCategoryCurrency;
     }
 
     /**

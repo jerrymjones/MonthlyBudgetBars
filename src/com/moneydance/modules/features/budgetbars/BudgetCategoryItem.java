@@ -32,6 +32,8 @@ package com.moneydance.modules.features.budgetbars;
 
 import com.infinitekind.moneydance.model.Account;
 import com.infinitekind.moneydance.model.Account.AccountType;
+import com.infinitekind.moneydance.model.CurrencyType;
+import com.infinitekind.moneydance.model.CurrencyUtil;
 
 /**
 * Class for budget category items
@@ -66,6 +68,9 @@ final class BudgetCategoryItem {
     // The type of account. Account.AccountType.ROOT (Totals),
     // Account.AccountType.Income (Income) or Account.AccountType.EXPENSE (Expenses)
     private final Account.AccountType categoryType;
+
+    // The currency type for this category
+    private final CurrencyType currencyType;
     
     // WHen true, this category has children and no budget values should exist for this category, 
     // only totals of the child items budgets.
@@ -87,7 +92,7 @@ final class BudgetCategoryItem {
      * @param indent - The indent level for this category.
      * @param hasChildren - true if this category has children, false otherwise.
      */
-    BudgetCategoryItem(final int index, final Account acct, final Account.AccountType type, final int parent, final int indent, final boolean hasChildren ) {
+    BudgetCategoryItem(final int index, final Account acct, final Account.AccountType type, CurrencyType currencyType, final int parent, final int indent, final boolean hasChildren ) {
         // Save the index
         this.index = index;
         
@@ -105,6 +110,9 @@ final class BudgetCategoryItem {
 
         // Save the Category type
         this.categoryType = type;
+        
+        // Save the currency type
+        this.currencyType = currencyType;
 
         // Save flag indicating if this category has children and thus shouldn't be edited
         this.hasChildren = hasChildren;
@@ -122,7 +130,7 @@ final class BudgetCategoryItem {
      * @param parent - The parent index for this category.
      * @param indent - The indent level for this category.
      */
-    BudgetCategoryItem(final int index, final String name, final Account.AccountType type, final int parent, final int indent) {
+    BudgetCategoryItem(final int index, final String name, final Account.AccountType type, CurrencyType currencyType, final int parent, final int indent) {
         // Save the index
         this.index = index;
 
@@ -140,6 +148,9 @@ final class BudgetCategoryItem {
 
         // Save the Category type
         this.categoryType = type;
+
+        // Save the currency type
+        this.currencyType = currencyType;
 
         // Special accounts always have children
         this.hasChildren = true;
@@ -226,7 +237,13 @@ final class BudgetCategoryItem {
     public Account.AccountType getCategoryType() {
         return this.categoryType;
     }
-
+   
+    /** 
+     * @return The CurrencyType for this category
+     */
+    public CurrencyType getCurrencyType() {
+        return this.currencyType;
+    }
     
     /** 
      * Get the budget total for this category.
@@ -236,7 +253,6 @@ final class BudgetCategoryItem {
     public Long getBudgetTotal() {
         return this.budgetValues[13];
     }
-
     
     /** 
      * Get the budget amount for the month requested.
@@ -247,7 +263,6 @@ final class BudgetCategoryItem {
     public Long getBudgetValueForMonth(final int month) {
         return this.budgetValues[month];
     }
-
 
     /** 
      * Set the budget amount for the month requested.
@@ -280,19 +295,23 @@ final class BudgetCategoryItem {
         // Keep track of the total for this budget category
         this.budgetValues[13] = this.budgetValues[13] - previousValue + value;
 
-        // Update parent
+        // Update parent if there is one
         if (this.parentIndex != -1)
             {
             final BudgetCategoryItem parentItem = budgetCategoriesList.getCategoryItemByIndex(this.parentIndex);
             if (parentItem != null)
                 {
-                value = parentItem.budgetValues[month] + difference;
-                parentItem.setBudgetValueForMonth(model, budgetCategoriesList, month, value, type);
+                // Convert the difference to the parent currency if needed
+                if (this.getCurrencyType() != parentItem.getCurrencyType())
+                    difference = CurrencyUtil.convertValue(value, this.getCurrencyType(), parentItem.getCurrencyType());
+                
+                // Update the parent
+                parentItem.setBudgetValueForMonth(model, budgetCategoriesList, month, parentItem.budgetValues[month] + difference, type);
                 }
             else
                 System.err.println("ERROR: Parent item is null in setBudgetValueForMonth.");
             }
-        }
+    }
 
     /** 
      * Get the actuals total for this category.
@@ -350,25 +369,32 @@ final class BudgetCategoryItem {
             // Iterate through each month
             for (int month = 1; month <= 12; month++)
                 {
+                // Get the child actual total for the month
+                long childActual = childItem.getActualTotalForMonth(month);
+
+                // Convert the child currency to the parent currency if needed
+                if (childItem.getCurrencyType() != parentItem.getCurrencyType())
+                    childActual = CurrencyUtil.convertValue(childActual, childItem.getCurrencyType(), parentItem.getCurrencyType());
+                            
                 // The root account is the Income-Expense row so this needs to be treated differently
                 if (parentItem.categoryType == Account.AccountType.ROOT)
                     {
                     // Income adds to the Income-Expense total
                     if (this.categoryType == Account.AccountType.INCOME)
                         {
-                        parentItem.setActualTotalForMonth(month, parentItem.getActualTotalForMonth(month) + childItem.getActualTotalForMonth(month));
-                        parentItem.setActualTotal(parentItem.getActualTotal() + childItem.getActualTotalForMonth(month));
+                        parentItem.setActualTotalForMonth(month, parentItem.getActualTotalForMonth(month) + childActual);
+                        parentItem.setActualTotal(parentItem.getActualTotal() + childActual);
                         }
                     else    // Expense subtracts from the Income-Expense total
                         {
-                        parentItem.setActualTotalForMonth(month, parentItem.getActualTotalForMonth(month) - childItem.getActualTotalForMonth(month));
-                        parentItem.setActualTotal(parentItem.getActualTotal() - childItem.getActualTotalForMonth(month));
+                        parentItem.setActualTotalForMonth(month, parentItem.getActualTotalForMonth(month) - childActual);
+                        parentItem.setActualTotal(parentItem.getActualTotal() - childActual);
                         }
                     }
                 else    // Regular rollup - add up expenses or income
                     {
-                    parentItem.setActualTotalForMonth(month, parentItem.getActualTotalForMonth(month) + childItem.getActualTotalForMonth(month));
-                    parentItem.setActualTotal(parentItem.getActualTotal() + childItem.getActualTotalForMonth(month));
+                    parentItem.setActualTotalForMonth(month, parentItem.getActualTotalForMonth(month) + childActual);
+                    parentItem.setActualTotal(parentItem.getActualTotal() + childActual);
                     }
                 }
 
