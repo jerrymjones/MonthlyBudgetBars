@@ -3,7 +3,7 @@
   "extension_type" = "java"
   "vendor" = "Jerry Jones"
   "vendor_url" = "https://github.com/jerrymjones/MonthlyBudgetBars/wiki"
-  "module_build" = "2202"
+  "module_build" = "2203"
   "minbuild" = "1706"
   "module_name" = "Monthly Budget Bars"
   "module_desc" = "<html><body><title>Monthly Budget Bars</title><p>Provides a home page component to display monthly budget status bars.</p></body></html>"
