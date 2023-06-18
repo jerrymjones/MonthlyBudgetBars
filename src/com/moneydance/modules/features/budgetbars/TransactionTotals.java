@@ -57,7 +57,7 @@ public class TransactionTotals implements TxnSearch{
 	private int endDate;
 
 	/**
-	 * Construct an TransactionTotals object to return actual spending totals by 
+	 * Construct a TransactionTotals object to return actual spending totals by 
 	 * month for a given account (category) given a start date and the 
 	 * number of months to return.
 	 * 
@@ -83,6 +83,7 @@ public class TransactionTotals implements TxnSearch{
 
 		// Get a txnSet for the category specified
 		this.txnSet = book.getTransactionSet().getTransactions(this);
+		
 		// Calculate totals by month
 		for (final AbstractTxn txnLine : this.txnSet) 
 			{

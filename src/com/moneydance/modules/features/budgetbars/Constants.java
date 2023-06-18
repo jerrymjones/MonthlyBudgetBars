@@ -67,7 +67,9 @@ public class Constants
     public static final int SETTINGS_VERSION_1      = 1;                            // Version 1 of the settings
     public static final int V1_NUM_MBR_SETTINGS     = 7;                            // Number of MBB_Settings in version 1 settings: (Version, Budget name, Use_full_names, warning level, over level, allAncestors)
     public static final int SETTINGS_VERSION_2      = 2;                            // Version 2 of the settings
-    public static final int V2_NUM_MBR_SETTINGS     = 8;                            // Number of MBB_Settings in version 1 settings: (Version, Budget name, Use_full_names, warning level, over level, allAncestors,useCategoryCurrency)
+    public static final int V2_NUM_MBR_SETTINGS     = 8;                            // Number of MBB_Settings in version 2 settings: (Version, Budget name, Use_full_names, warning level, over level, allAncestors,useCategoryCurrency)
+    public static final int SETTINGS_VERSION_3      = 3;                            // Version 3 of the settings
+    public static final int V3_NUM_MBR_SETTINGS     = 9;                            // Number of MBB_Settings in version 3 settings: (Version, Budget name, Use_full_names, warning level, over level, allAncestors,useCategoryCurrency, ignoreUnbudgeted)
 
     /*
      * Decimal format when printing percentages

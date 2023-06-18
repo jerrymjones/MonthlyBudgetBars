@@ -77,6 +77,7 @@ public class BudgetBarEdit extends JDialog implements ChangeListener
     JCheckBox showFullNames;
     JCheckBox showAllAncestors;
     JCheckBox showUseCategoryCurrency;
+    JCheckBox showIgnoreUnbudgeted;
     private JSlider warning;
     private JLabel warningValLabel;
     private JSlider over;
@@ -189,23 +190,31 @@ public class BudgetBarEdit extends JDialog implements ChangeListener
         topPanel.add(this.showUseCategoryCurrency,GridC.getc(1, 4).insets(10, 10, 10, 0).fillx());
 
         /*
+        ** Show ignore unbudgeted categories checkbox
+        */
+        this.showIgnoreUnbudgeted = new JCheckBox("Exclude unbudgeted categories");
+        this.showIgnoreUnbudgeted.setSelected(this.settings.getIgnoreUnbudgeted());
+        this.showIgnoreUnbudgeted.setToolTipText("Select to exclude unbudgeted categories in totals even if they have spending assigned to them");
+        topPanel.add(this.showIgnoreUnbudgeted,GridC.getc(1, 5).insets(10, 10, 10, 0).fillx());
+
+        /*
         * Field to set the warning level
         */
         // Label
         final JLabel warningLabel = new JLabel("Warning Level (%):");
         warningLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-        topPanel.add(warningLabel, GridC.getc(0, 5).insets(10, 0, 0, 0).east());
+        topPanel.add(warningLabel, GridC.getc(0, 6).insets(10, 0, 0, 0).east());
 
         // Add a slider to set the level from 50.0% to 150.0%
         this.warning = new JSlider(500, 1500);
         this.warning.setValue(Math.round(this.settings.getWarningLevel() * 10));
-        topPanel.add(this.warning,GridC.getc(1, 5).insets(10, 10, 0, 0).fillx());
+        topPanel.add(this.warning,GridC.getc(1, 6).insets(10, 10, 0, 0).fillx());
 
         // Value label
         this.warningValLabel = new JLabel();
         this.warningValLabel.setHorizontalAlignment(SwingConstants.CENTER);
         this.warningValLabel.setText(String.valueOf(this.warning.getValue() / 10.0f));
-        topPanel.add(this.warningValLabel, GridC.getc(1, 6).insets(0, 0, 10, 0).center());
+        topPanel.add(this.warningValLabel, GridC.getc(1, 7).insets(0, 0, 10, 0).center());
 
         // Add a change listener so we can update the warningValLabel
         this.warning.addChangeListener(this);
@@ -216,18 +225,18 @@ public class BudgetBarEdit extends JDialog implements ChangeListener
         // Label
         final JLabel overLabel = new JLabel("Over Budget level (%):");
         overLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-        topPanel.add(overLabel, GridC.getc(0, 7).insets(10, 0, 0, 0).east());
+        topPanel.add(overLabel, GridC.getc(0, 8).insets(10, 0, 0, 0).east());
 
         // Add a slider to set the level from 50.0% to 150.0%
         this.over = new JSlider(Math.round(this.settings.getWarningLevel() * 10), Math.round(this.settings.getWarningLevel() * 10) + 500);
         this.over.setValue(Math.round(this.settings.getOverBudgetLevel() * 10));
-        topPanel.add(this.over,GridC.getc(1, 7).insets(10, 10, 0, 0).fillx());
+        topPanel.add(this.over,GridC.getc(1, 8).insets(10, 10, 0, 0).fillx());
 
         // Value label
         this.overValLabel = new JLabel();
         this.overValLabel.setHorizontalAlignment(SwingConstants.CENTER);
         this.overValLabel.setText(String.valueOf(this.over.getValue() / 10.0f));
-        topPanel.add(this.overValLabel, GridC.getc(1, 8).center());
+        topPanel.add(this.overValLabel, GridC.getc(1, 9).center());
 
         // Add a change listener so we can update the warningValLabel
         this.over.addChangeListener(this);
@@ -682,6 +691,9 @@ public class BudgetBarEdit extends JDialog implements ChangeListener
         if (this.showUseCategoryCurrency.isSelected() != this.settings.getUseCategoryCurrency() )
             return true;
 
+        if (this.showIgnoreUnbudgeted.isSelected() != this.settings.getIgnoreUnbudgeted() )
+            return true;    
+
         // Did the sliders change?
         if (this.stateChanged)
             return true;
@@ -701,16 +713,20 @@ public class BudgetBarEdit extends JDialog implements ChangeListener
             // Save the other parameters if they changed
             if (this.isDataChanged())
                 {
-                    // Gather the values from the dialog controls
-                    this.settings.setBudgetName(this.budgetSelector.getSelectedItem().toString());
-                    this.settings.setUseFullNames(this.showFullNames.isSelected());
-                    this.settings.setAllAncestors(this.showAllAncestors.isSelected());
-                    this.settings.setUseCategoryCurrency(this.showUseCategoryCurrency.isSelected());
-                    this.settings.setWarningLevel(this.warning.getValue() / 10.0f);
-                    this.settings.setOverBudgetLevel(this.over.getValue() / 10.0f);
+                // Gather the values from the dialog controls
+                this.settings.setBudgetName(this.budgetSelector.getSelectedItem().toString());
+                this.settings.setUseFullNames(this.showFullNames.isSelected());
+                this.settings.setAllAncestors(this.showAllAncestors.isSelected());
+                this.settings.setUseCategoryCurrency(this.showUseCategoryCurrency.isSelected());
+                this.settings.setIgnoreUnbudgeted(this.showIgnoreUnbudgeted.isSelected());
+                this.settings.setWarningLevel(this.warning.getValue() / 10.0f);
+                this.settings.setOverBudgetLevel(this.over.getValue() / 10.0f);
 
-                    // Save the settings
-                    this.settings.saveSettings();
+                // Save the settings
+                this.settings.saveSettings();
+
+                // For debug
+                System.err.println("Settings saved: " + this.settings.toString());
                 }
 
             // Save the selected categories if they changed

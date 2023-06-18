@@ -74,6 +74,9 @@ public class Settings {
     // True when displaying the bar using the category currency 
     private static Boolean useCategoryCurrency = false;
 
+    // True when ignoring unbudgeted categories even if there is spending for them
+    private static Boolean ignoreUnbudgeted = false;
+
     /**
      * Default constructor for the settings class.
      * 
@@ -102,14 +105,26 @@ public class Settings {
                     // Get the V1 parameters
                     Settings.getV1Params(rawSplit);
 
-                    // Upgrade to V2 parameters by setting the defaults
-                    Settings.version                = Constants.SETTINGS_VERSION_2;
+                    // Upgrade to V3 parameters by setting the defaults
+                    Settings.version                = Constants.SETTINGS_VERSION_3;
                     Settings.useCategoryCurrency    = false;
+                    Settings.ignoreUnbudgeted       = false;
                     return;
                     }
                 else if ((version == Constants.SETTINGS_VERSION_2) && (rawSplit.length == Constants.V2_NUM_MBR_SETTINGS))
                     {
+                    // Get the V2 parameters
                     Settings.getV2Params(rawSplit);
+
+                    // Upgrade to V3 parameters by setting the defaults
+                    Settings.version                = Constants.SETTINGS_VERSION_3;
+                    Settings.ignoreUnbudgeted       = false;
+                    return;
+                    }
+                else if ((version == Constants.SETTINGS_VERSION_3) && (rawSplit.length == Constants.V3_NUM_MBR_SETTINGS))
+                    {
+                    // Get the V3 parameters
+                    Settings.getV3Params(rawSplit);
                     return;
                     }
                 // else, just go set the defaults
@@ -127,7 +142,7 @@ public class Settings {
             }
 
         // Otherwise, we'll use the defaults just to get going
-        Settings.version                = Constants.SETTINGS_VERSION_2;
+        Settings.version                = Constants.SETTINGS_VERSION_3;
         Settings.budgetName             = "Budget";
         Settings.useFullNames           = false;
         Settings.warningLevel           = 100.0f;
@@ -135,6 +150,7 @@ public class Settings {
         Settings.period                 = Constants.PERIOD_AUTOMATIC;
         Settings.allAncestors           = false;
         Settings.useCategoryCurrency    = false;
+        Settings.ignoreUnbudgeted       = false;
     }
 
     /**
@@ -164,6 +180,20 @@ public class Settings {
         //Now get the V2 parameters
         Settings.version                = Constants.SETTINGS_VERSION_2;
         Settings.useCategoryCurrency    = rawSplit[7].equalsIgnoreCase("true");
+    }
+
+    /**
+     * Method to retrieve the V3 parameters
+     * 
+     * @param rawSplit - The settings from the preferences split into an array
+     */
+    private static void getV3Params(String[] rawSplit) {
+        // First load the V1 and V2 parameters
+        Settings.getV2Params(rawSplit);
+
+        //Now get the V3 parameters
+        Settings.version                = Constants.SETTINGS_VERSION_3;
+        Settings.ignoreUnbudgeted       = rawSplit[8].equalsIgnoreCase("true");
     }
 
     /**
@@ -210,7 +240,8 @@ public class Settings {
      */
     public void saveSettings() {
         final String settings = Settings.version+","+Settings.budgetName+","+Settings.useFullNames.toString()+","+Settings.warningLevel
-            +","+Settings.overBudgetLevel+","+Settings.period+","+Settings.allAncestors.toString()+","+Settings.useCategoryCurrency.toString();
+            +","+Settings.overBudgetLevel+","+Settings.period+","+Settings.allAncestors.toString()+","+Settings.useCategoryCurrency.toString()
+            +","+Settings.ignoreUnbudgeted.toString();
         Settings.book.getRootAccount().setPreference(Constants.MBB_SETTINGS, settings);
     }
     
@@ -221,7 +252,7 @@ public class Settings {
     public String toString() {
         return "Settings [version=" + Settings.version + ", budgetName=" + Settings.budgetName + ", useFullNames=" + Settings.useFullNames + ", warningLevel="
                 + Settings.warningLevel + ", overBudgetLevel=" + Settings.overBudgetLevel + ", period=" + Settings.period  + ", allAncestors=" 
-                + Settings.allAncestors  + ", useCategoryCurrency="+ Settings.useCategoryCurrency + "]";
+                + Settings.allAncestors  + ", useCategoryCurrency="+ Settings.useCategoryCurrency  + ", ignoreUnbudgeted="+ Settings.ignoreUnbudgeted + "]";
     }
 
     /**
@@ -309,7 +340,7 @@ public class Settings {
     }
 
     /**
-     * @return the useCategoryCurrency
+     * @return the useCategoryCurrency flag
      */
     public Boolean getUseCategoryCurrency() {
         return Settings.useCategoryCurrency;
@@ -320,6 +351,21 @@ public class Settings {
      */
     public void setUseCategoryCurrency(Boolean useCategoryCurrency) {
         Settings.useCategoryCurrency = useCategoryCurrency;
+    }
+
+    /**
+     * @return the ignoreUnbudgeted flag
+     */
+    public Boolean getIgnoreUnbudgeted() {
+        return Settings.ignoreUnbudgeted;
+    }
+
+    /**
+     * @param ignoreUnbudgeted true when ignoring categories without budgets even
+     * if there is spending assigned to those categories.
+     */
+    public void setIgnoreUnbudgeted(Boolean ignoreUnbudgeted) {
+        Settings.ignoreUnbudgeted = ignoreUnbudgeted;
     }
 
     /**

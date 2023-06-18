@@ -396,21 +396,25 @@ public class BudgetBar extends JPanel
                 }
             preTipText.append("<tr><td>"+indentStr+item.getShortName()+"&nbsp;&nbsp;</td>");
 
-            // Add spent amount
-            preTipText.append("<td align='right'>"+BudgetBar.this.formatValue(item, actual)+"&nbsp;&nbsp;</td>");
+            // Only display the following if there is data to display
+            if ((actual > 0) || (budget > 0))
+                {
+                // Add spent amount
+                preTipText.append("<td align='right'>"+BudgetBar.this.formatValue(item, actual)+"&nbsp;&nbsp;</td>");
 
-            // Add spent %
-            if (budget == 0)
-                preTipText.append("<td align='center'>N/A</td>");   // Prevents NaN
-            else
-                preTipText.append("<td align='right'>"+(Constants.PERCENT_FORMAT.format(100.0d * actual / budget))+"%&nbsp;&nbsp;</td>");
-        
-            // Add Remaining amount
-            preTipText.append("<td align='right'>"+BudgetBar.this.formatValue(item, budget-actual)+"&nbsp;&nbsp;</td>");
-
-            // Add budget amount
-            preTipText.append("<td align='right'>"+BudgetBar.this.formatValue(item, budget)+"&nbsp;&nbsp;</td>");
+                // Add spent %
+                if (budget == 0)
+                    preTipText.append("<td align='center'>N/A</td>");   // Prevents NaN
+                else
+                    preTipText.append("<td align='right'>"+(Constants.PERCENT_FORMAT.format(100.0d * actual / budget))+"%&nbsp;&nbsp;</td>");
             
+                // Add Remaining amount
+                preTipText.append("<td align='right'>"+BudgetBar.this.formatValue(item, budget-actual)+"&nbsp;&nbsp;</td>");
+
+                // Add budget amount
+                preTipText.append("<td align='right'>"+BudgetBar.this.formatValue(item, budget)+"&nbsp;&nbsp;</td>");
+                }
+
             // End of row
             preTipText.append("</tr>");
 

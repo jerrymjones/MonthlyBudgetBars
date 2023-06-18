@@ -254,15 +254,22 @@ public class DataModel {
                     // Find existing budget values for each month
                     final BudgetItem i = this.budgetItemList.getBudgetItemForCategory(acct, new BudgetPeriod(DateUtil.getDate(thisYear, month, 1), PeriodType.MONTH));
                     if (i != null)
+                        {
+                        // Set the budget value for the current month
                         item.setBudgetValueForMonth(this, this.budgetCategoriesList, month, i.getAmount(), acctType);
+                        }
                     }
                 } 
 
-            // Retrieve the actual totals for this account
-            new TransactionTotals(item, this.book, acct, thisYear, startMonth, months);
+            // Only add transaction totals if the category is budgeted or if  we are not ignoring unbudgeted categories
+            if ((item.getBudgetTotal() != 0) || (Settings.getInstance().getIgnoreUnbudgeted() == false))
+                {
+                // Retrieve the actual totals for this account
+                new TransactionTotals(item, this.book, acct, thisYear, startMonth, months);
 
-            // Update the parent actual totals
-            item.updateParentActualTotals(this.budgetCategoriesList, item);
+                // Update the parent actual totals
+                item.updateParentActualTotals(this.budgetCategoriesList, item);
+                }
             }
         }
     }
