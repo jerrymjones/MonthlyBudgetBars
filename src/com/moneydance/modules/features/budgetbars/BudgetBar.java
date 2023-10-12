@@ -105,7 +105,7 @@ public class BudgetBar extends JPanel
 
         // Display the budget amount left to spend at the left end of the progress bar
         this.spentLabel = new JLabel("", JLabel.RIGHT);
-        this.spentLabel.setPreferredSize(new Dimension(100, this.spentLabel.getHeight()));
+        this.spentLabel.setPreferredSize(new Dimension(110, this.spentLabel.getHeight()));
         this.add(this.spentLabel, BorderLayout.LINE_START);
 
         // Create and configure the progress bar
@@ -115,8 +115,8 @@ public class BudgetBar extends JPanel
         this.add(this.progressBar, BorderLayout.CENTER);
 
         // Display the budget value at the right end of the budget bar
-        this.budgetLabel = new JLabel("", JLabel.RIGHT);
-        this.budgetLabel.setPreferredSize(new Dimension(100, this.budgetLabel.getHeight()));
+        this.budgetLabel = new JLabel("", JLabel.LEFT);
+        this.budgetLabel.setPreferredSize(new Dimension(110, this.budgetLabel.getHeight()));
         this.add(this.budgetLabel, BorderLayout.LINE_END);
         
         // Add a gap at the bottom of the budget bar

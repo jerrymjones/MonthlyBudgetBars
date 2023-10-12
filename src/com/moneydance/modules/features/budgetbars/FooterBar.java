@@ -67,7 +67,7 @@ public class FooterBar extends JPanel
 
         // Left legend
         final JLabel leftLabel = new JLabel("Spent", JLabel.RIGHT);
-        leftLabel.setPreferredSize(new Dimension(100, leftLabel.getHeight()));
+        leftLabel.setPreferredSize(new Dimension(110, leftLabel.getHeight()));
         leftLabel.setForeground(colors.isDarkTheme() ? Constants.MEDIUM_BLUE : colors.reportBlueFG);   
         this.add(leftLabel, BorderLayout.LINE_START);
 
@@ -77,8 +77,8 @@ public class FooterBar extends JPanel
         this.add(centerLabel, BorderLayout.CENTER);
 
         // Right legend
-        final JLabel rightLabel = new JLabel("Budget", JLabel.RIGHT);
-        rightLabel.setPreferredSize(new Dimension(100, rightLabel.getHeight()));
+        final JLabel rightLabel = new JLabel("Budget", JLabel.LEFT);
+        rightLabel.setPreferredSize(new Dimension(110, rightLabel.getHeight()));
         rightLabel.setForeground(colors.isDarkTheme() ? Constants.MEDIUM_BLUE : colors.reportBlueFG);
         this.add(rightLabel, BorderLayout.LINE_END);
     }
